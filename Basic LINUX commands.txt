@@ -1,0 +1,22 @@
+root@ubuntu:~$
+root means username
+@ - segregation
+ubuntu means hostname/ip
+
+$ means admin/root user
+# means user (normal user)
+~ this negation/tilt means home directory of the user
+
+cd > change dir
+ls > list files and dir
+mkdir > create dir
+rmdir > remove dir
+touch > create an empty dir
+history > to list the previously used commands
+clear > to clear the prompt/terminal
+{} brace expansion
+
+color coding:-
+blue > dir (folders)
+white > file
+green > execute (executable file)

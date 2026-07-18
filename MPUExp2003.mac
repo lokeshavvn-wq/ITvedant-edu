@@ -1,0 +1,48 @@
+MPUExp2003 ; Apr 20 2022 11:47:03 (MJM, 378721) (CRC=39)
+  ; This utility is used to export all routines which are available in MIDIC(2003) 
+  ; 
+  ;coping the MIDIC(2003) global
+  S $ZT="ERR^MIDERR" 
+  set lfn=0 f  s lfn=$o(^MIDIC(2003,lfn)) q:lfn'?1n.n  S x=$G(^MIDIC(2003,lfn,0)) S:x'="" ARRAY($P(x,"^",1))=""	
+  set routines=0,lfn=0 f  s lfn=$o(ARRAY(lfn)) q:lfn=""  s routines=$S(routines=0:lfn_".mac,",1:routines_lfn_".mac,")
+  ;Getting the Common directory Path
+  ; set path = ##class(%Library.File).NormalizeDirectory("") ; remove <old Cache> 378573
+  set path = ##class(%SYSTEM.Util).InstallDirectory() ; < = new line -Cache/Iris installation directory adding per 378573
+  set DatabaseDir=$piece(path,"\",1,2)_"\Midshare\"
+  ; if DatabaseDir="" set DatabaseDir=$zcvt(path,"U") remove per story 378573
+  ;Exporting the list of routines to a common path  
+  s tFileName="bkupMIDIC2003"
+  s tExpStatus=$$EXPORT(routines,DatabaseDir,tFileName)
+  Q
+  ;Common code to use for Exporting a files in .xml
+EXPORT(Routines,dirName,tFileName) 
+ ;Input Parameters:
+  ;Routines => Single,Comma seperated file names like XRSU.mac or XRSU.mac,MPUExp2003,mmUSer.mac
+  ;dirName=>Directory name to export a file .like H:\RSU\
+  ;FileName =>File name to export like bkupMIDIC2003
+ ;Output Parameter 
+  ;ret => Return export status 0 or 1 
+  set %M= " FILE EXPORT PROCESS STARTED...FROM "_$ZZNODE,%E="H" do ^MIDERR 
+  S tStatus=##class(%Library.File).DirectoryExists(dirName)
+  I 'tStatus
+  {
+ 	s %M=$ZN_" : "_dirName_" DIRECTORY DOES NOT EXISTS/ACCESSIBLE...! FROM "_$ZZNODE_" AND "_$ZNSPACE,%E="H" do ^MIDERR
+  	s dirName="C:\temp\",tDefault1="",tdefault=##class(%Library.File).DirectoryExists(dirName) ;Default dir
+  	I 'tdefault  set tDefault1=##class(%Library.File).CreateDirectory(dirName,.tDefaultsts)	
+  	I 'tDefault1 set %M="***NOT ABLE TO CREATE FILE*** IN "_dirName_">"_$ZZNODE,%E="H" do ^MIDERR Q 0 ; adding "0" per 378573
+  }
+ set NfileName=$TR($ZNSPACE,"-")_tFileName_".XML" //DEV1014bkupMIDIC2003.XML
+ set BkupFile=dirName_NfileName
+ set Routines=$e(Routines,1,$l(Routines)-1)
+ do ##class(%Library.File).Delete(BkupFile)
+ set ret=$System.OBJ.Export(Routines,BkupFile)
+  I ret
+  {
+ 	set %M=" FILES EXPORTED FROM "_$ZZNODE_" AND PLACED IN " _dirName_NfileName,%E="H" do ^MIDERR  	  	 
+  }
+  else
+  { 
+	set %M=" FAILED TO EXPORT FILES FROM "_$ZZNODE,%E="H" do ^MIDERR	
+  }
+  set %M= " FILE EXPORT PROCESS COMPLETED...FROM "_$ZZNODE ,%E="H" do ^MIDERR 
+  Q ret
